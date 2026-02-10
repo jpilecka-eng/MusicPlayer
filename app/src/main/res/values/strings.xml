@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">MusicPlayer</string>
+
+
+    <string name="string_bottom_menu_home_title">Home</string>
+    <string name="string_bottom_menu_search_title">Search</string>
+    <string name="string_bottom_menu_library_title">Library</string>
+
+    <string name="string_player_ic_download_description">Download</string>
+    <string name="string_player_ic_save_description">Save</string>
+    <string name="string_player_ic_shuffle_description">Shuffle</string>
+    <string name="string_player_ic_repeat_description">Repeat</string>
+    <string name="string_player_ic_play_description">Play</string>
+    <string name="string_player_ic_previous_description">Previous</string>
+    <string name="string_player_ic_next_description">Next</string>
+
+    <string name="string_home_trending_songs_heading">Trending songs</string>
+    <string name="string_home_new_releases_heading">New releases</string>
+    <string name="string_home_recommended_albums_heading">Recommended albums</string>
+
+    <string name="string_error_page_heading">Something went wrong. Try reloading. </string>
+    <string name="string_error_page_reload_button">Reload</string>
+
+    <string name="string_playlist_heading">Playlist</string>
+    <string name="string_album_heading">Album</string>
+    <string name="string_playlist_description_read_more">Read more</string>
+    <string name="string_playlist_description_read_less">Read less</string>
+
+</resources>

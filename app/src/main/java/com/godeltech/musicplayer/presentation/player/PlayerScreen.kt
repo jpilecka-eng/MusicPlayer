@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -51,6 +54,7 @@ fun PlayerScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreenContent(
     playerState: PlayerState,
@@ -65,6 +69,25 @@ fun PlayerScreenContent(
         if (state.isLoading) {
             ProgressIndicator(
                 modifier = Modifier.zIndex(1f)
+            )
+        }
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        val queue = playerState.queue
+        val queueSizeWithoutPlayingTrack = remember(queue) {
+            if (queue.size <= 1) emptyList() else queue.drop(1)
+        }
+        if (state.data.showQueue) {
+            PlayerQueueBottomSheet(
+                onDismissRequest = {
+                    onAction(PlayerUIAction.OnBottomSheetDismissed)
+                },
+                sheetState = sheetState,
+                queue = queueSizeWithoutPlayingTrack,
+                playlistName = playerState.currentlyPlayingPlaylistName,
+                playingTrack = playerState.queue[0],
+                onItemClicked = {
+                    onAction(PlayerUIAction.OnQueueItemClicked(it))
+                }
             )
         }
 
@@ -220,6 +243,7 @@ fun TrackOptionsRow(
                 onClick = {}
             )
         }
+
         RoundButton(
             iconRes = R.drawable.ic_queue,
             modifier = Modifier.size(MusicPlayerTheme.spacing.spacingXXXXL),

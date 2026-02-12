@@ -13,6 +13,9 @@
     <string name="string_player_ic_play_description">Play</string>
     <string name="string_player_ic_previous_description">Previous</string>
     <string name="string_player_ic_next_description">Next</string>
+    <string name="string_player_queue_bottom_sheet_heading">Queue</string>
+    <string name="string_player_queue_bottom_sheet_playing">Playing:</string>
+    <string name="string_player_queue_bottom_sheet_shuffling">Next from:</string>
 
     <string name="string_home_trending_songs_heading">Trending songs</string>
     <string name="string_home_new_releases_heading">New releases</string>

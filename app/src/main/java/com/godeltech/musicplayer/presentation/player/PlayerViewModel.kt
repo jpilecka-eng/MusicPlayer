@@ -116,13 +116,37 @@ class PlayerViewModel @Inject constructor(
             }
 
             is PlayerUIAction.OnQueueClicked -> {
+                if (playerState.value.queue.isNotEmpty()) {
+                    _state.update {
+                        it.copy(
+                            data = it.data.copy(
+                                showQueue = !state.value.data.showQueue
+                            )
+                        )
+                    }
+                }
+            }
+
+            is PlayerUIAction.OnBottomSheetDismissed -> {
                 _state.update {
                     it.copy(
                         data = it.data.copy(
-                            showQueue = !state.value.data.showQueue
+                            showQueue = false
                         )
                     )
                 }
+            }
+
+            is PlayerUIAction.OnQueueItemClicked -> {
+                playerControls.onAction(
+                    PlayerAction.PlaySong(
+                        emptyList(),
+                        playerState.value.currentlyPlayingPlaylistId,
+                        index = playerAction.index,
+                        playListName = playerState.value.currentlyPlayingPlaylistName,
+                        reshuffle = false
+                    )
+                )
             }
         }
     }

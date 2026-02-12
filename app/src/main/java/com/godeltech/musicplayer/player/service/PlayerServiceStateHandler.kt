@@ -12,6 +12,9 @@ class PlayerServiceStateHandler @Inject constructor(
     private val _isServiceRunning = MutableStateFlow(false)
     val serviceIsRunning = _isServiceRunning.asStateFlow()
 
+    private val _shuffleOrder = MutableStateFlow(intArrayOf())
+    val shuffleOrder = _shuffleOrder.asStateFlow()
+
     fun onServiceStopped() {
         _isServiceRunning.update {
             false
@@ -21,6 +24,12 @@ class PlayerServiceStateHandler @Inject constructor(
     fun onServiceStarted() {
         _isServiceRunning.update {
             true
+        }
+    }
+
+    fun onShuffleOrderChanged(shuffleOrder: IntArray) {
+        _shuffleOrder.update {
+            shuffleOrder
         }
     }
 }

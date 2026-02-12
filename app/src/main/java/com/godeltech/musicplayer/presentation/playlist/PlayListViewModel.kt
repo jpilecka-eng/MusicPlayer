@@ -75,7 +75,9 @@ class PlayListViewModel @AssistedInject constructor(
                     PlayerAction.PlaySong(
                         state.value.data.tracks,
                         state.value.data.playlistInfo.id,
-                        playlistAction.index
+                        index = playlistAction.index,
+                        playListName = state.value.data.playlistInfo.title,
+                        reshuffle = true
                     )
                 )
                 _event.sendEvent(viewModelScope) {

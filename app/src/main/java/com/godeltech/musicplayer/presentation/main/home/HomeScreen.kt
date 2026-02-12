@@ -100,14 +100,21 @@ fun HomeScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(MusicPlayerTheme.padding.paddingL),
                     contentPadding = PaddingValues(horizontal = MusicPlayerTheme.padding.paddingXL)
                 ) {
-                    itemsIndexed(state.data.recentTracks.tracks) { index, item ->
+                    itemsIndexed(
+                        items = state.data.recentTracks.tracks,
+                        key = { _, item ->
+                            item.id
+                        }
+                    ) { index, item ->
                         MediaCard(
                             imageUrl = item.imageUrl,
                             artistName = item.artistName,
                             trackName = item.title,
                             imageSize = 155.dp,
                             onClick = {
-                                onAction(HomeAction.TrackClicked(index, HomeSectionId.RECENT))
+                                onAction(
+                                    HomeAction.TrackClicked(index, HomeSectionId.NEW_RELEASES)
+                                )
                             }
                         )
                     }
@@ -124,14 +131,21 @@ fun HomeScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(MusicPlayerTheme.padding.paddingL),
                     contentPadding = PaddingValues(horizontal = MusicPlayerTheme.padding.paddingXL)
                 ) {
-                    itemsIndexed(state.data.trendingTracksA.tracks) { index, item ->
+                    itemsIndexed(
+                        items = state.data.trendingTracksA.tracks,
+                        key = { _, item ->
+                            item.id
+                        }
+                    ) { index, item ->
                         MediaCard(
                             imageUrl = item.imageUrl,
                             artistName = item.artistName,
                             trackName = item.title,
                             imageSize = 98.dp,
                             onClick = {
-                                onAction(HomeAction.TrackClicked(index, HomeSectionId.TRENDING_A))
+                                onAction(
+                                    HomeAction.TrackClicked(index, HomeSectionId.TRENDING1)
+                                )
                             }
                         )
                     }
@@ -144,14 +158,21 @@ fun HomeScreenContent(
                         vertical = MusicPlayerTheme.padding.paddingXXL
                     )
                 ) {
-                    itemsIndexed(state.data.trendingTracksB.tracks) { index, item ->
+                    itemsIndexed(
+                        items = state.data.trendingTracksB.tracks,
+                        key = { _, item ->
+                            item.id
+                        }
+                    ) { index, item ->
                         MediaCard(
                             imageUrl = item.imageUrl,
                             artistName = item.artistName,
                             trackName = item.title,
                             imageSize = 98.dp,
                             onClick = {
-                                onAction(HomeAction.TrackClicked(index, HomeSectionId.TRENDING_B))
+                                onAction(
+                                    HomeAction.TrackClicked(index, HomeSectionId.TRENDING2)
+                                )
                             }
                         )
                     }
@@ -168,7 +189,12 @@ fun HomeScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(MusicPlayerTheme.padding.paddingL),
                     contentPadding = PaddingValues(horizontal = MusicPlayerTheme.padding.paddingXL)
                 ) {
-                    items(state.data.recommendedPlaylists) { item ->
+                    items(
+                        items = state.data.recommendedPlaylists,
+                        key = { item ->
+                            item.id
+                        }
+                    ) { item ->
                         MediaCard(
                             imageUrl = item.imageUrl,
                             artistName = item.creatorName,

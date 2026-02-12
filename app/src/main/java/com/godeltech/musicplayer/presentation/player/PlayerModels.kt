@@ -29,4 +29,6 @@ sealed class PlayerUIAction {
     data object OnRepeatClicked : PlayerUIAction()
     data object OnShuffleClicked : PlayerUIAction()
     data object OnQueueClicked : PlayerUIAction()
+    data object OnBottomSheetDismissed : PlayerUIAction()
+    data class OnQueueItemClicked(val index: Int) : PlayerUIAction()
 }

@@ -64,7 +64,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
-
     //constraint layout
     implementation(libs.androidx.constraintlayout.compose)
 
@@ -85,4 +84,5 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
+
 }

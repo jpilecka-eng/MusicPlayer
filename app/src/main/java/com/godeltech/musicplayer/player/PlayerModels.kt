@@ -7,19 +7,23 @@ const val TRACK_STREAM_BASE_URL = "https://api.audius.co/v1/tracks/%s/stream"
 data class PlayerState(
     val currentlyPlayingTrack: Track = Track(),
     val currentlyPlayingPlaylistId: String = "",
+    val currentlyPlayingPlaylistName: String = "",
     val isLoading: Boolean = false,
     val isPlaying: Boolean = false,
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
-    val shuffleEnabled: Boolean = false
+    val shuffleEnabled: Boolean = false,
+    val queue: List<Track> = emptyList(),
+    val currentIndex: Long = 0
 )
 
 data class Track(
     val id: String = "",
     val title: String = "",
     val artistName: String = "",
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+    val playlistIndex: Int = 0
 )
 
 sealed class PlayerAction {
@@ -31,7 +35,9 @@ sealed class PlayerAction {
     data class PlaySong(
         val items: List<Track>,
         val playlistId: String,
-        val index: Int
+        val playListName: String,
+        val index: Int,
+        val reshuffle: Boolean
     ) : PlayerAction()
 
     data object PlayNext : PlayerAction()

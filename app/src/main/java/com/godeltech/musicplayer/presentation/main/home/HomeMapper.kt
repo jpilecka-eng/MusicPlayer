@@ -17,16 +17,16 @@ class HomeMapper @Inject constructor(
         val half = mappedTrendingTracks.size / 2
         val trendingTracksAListModel = TrackListModel(
             mappedTrendingTracks.subList(0, half),
-            HomeSectionId.TRENDING_A
+            HomeSectionId.TRENDING1
         )
         val trendingTracksBListModel = TrackListModel(
             mappedTrendingTracks.subList(half, mappedTrendingTracks.size),
-            HomeSectionId.TRENDING_B
+            HomeSectionId.TRENDING2
         )
         val mappedRecentTracks = mapFromTrackDataResponse(recentTracks)
         val recentTracksListModel = TrackListModel(
             mappedRecentTracks,
-            HomeSectionId.RECENT
+            HomeSectionId.NEW_RELEASES
         )
         val mappedRecommendedPlaylists = mapFromPlaylistDataResponse(recommendedPlaylists)
 
@@ -40,7 +40,6 @@ class HomeMapper @Inject constructor(
 
     fun mapFromTrackDataResponse(trackListResponse: TracksDataResponse): List<Track> {
         val tracks = trackListResponse.tracksList.map { trackResponse ->
-            val duration = (trackResponse.duration?.toLong()?.times(1000L)) ?: 0L
             Track(
                 title = trackResponse.title ?: "",
                 imageUrl = trackResponse.artworkResponse.imageUrl ?: "",

@@ -25,18 +25,11 @@ data class TrackListModel(
 )
 
 enum class HomeSectionId {
-    TRENDING_A,
-    TRENDING_B,
-    RECENT,
+    TRENDING1,
+    TRENDING2,
+    NEW_RELEASES,
     UNKNOWN
 }
-
-data class TrackModel(
-    val id: String = "",
-    val title: String = "",
-    val imageUrl: String = "",
-    val artistName: String = ""
-)
 
 data class PlaylistModel(
     val id: String = "",
@@ -52,5 +45,7 @@ sealed class HomeEvent {
 
 sealed class HomeAction {
     data class TrackClicked(val index: Int, val id: HomeSectionId) : HomeAction()
-    data class AlbumClicked(val id: String) : HomeAction()
+    data class AlbumClicked(
+        val id: String
+    ) : HomeAction()
 }

@@ -54,15 +54,15 @@ class HomeViewModel @Inject constructor(
         when (homeAction) {
             is HomeAction.TrackClicked -> {
                 val trackList: List<Track> = when (homeAction.id) {
-                    HomeSectionId.TRENDING_A -> {
+                    HomeSectionId.TRENDING1 -> {
                         state.value.data.trendingTracksA.tracks
                     }
 
-                    HomeSectionId.TRENDING_B -> {
+                    HomeSectionId.TRENDING2 -> {
                         state.value.data.trendingTracksB.tracks
                     }
 
-                    HomeSectionId.RECENT -> {
+                    HomeSectionId.NEW_RELEASES -> {
                         state.value.data.recentTracks.tracks
                     }
 
@@ -70,12 +70,13 @@ class HomeViewModel @Inject constructor(
                         emptyList()
                     }
                 }
-
                 playerControls.onAction(
                     PlayerAction.PlaySong(
                         trackList,
                         homeAction.id.name,
-                        homeAction.index
+                        index = homeAction.index,
+                        playListName = homeAction.id.name,
+                        reshuffle = true
                     )
                 )
                 _event.sendEvent(viewModelScope) {

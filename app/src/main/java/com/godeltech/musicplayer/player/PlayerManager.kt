@@ -1,9 +1,11 @@
 package com.godeltech.musicplayer.player
 
 import androidx.core.net.toUri
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import com.godeltech.musicplayer.player.controller.ControllerProvider
 import com.godeltech.musicplayer.player.service.PlayerServiceStateHandler
@@ -47,14 +49,17 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onRepeatModeChanged(repeatMode: Int) {
+            val queue = buildQueue()
             _playerState.update {
                 it.copy(
+                    queue = queue,
                     repeatMode = repeatMode
                 )
             }
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            val queue = buildQueue()
             val metadata = mediaItem?.mediaMetadata
             _playerState.update {
                 it.copy(
@@ -65,6 +70,8 @@ class PlayerManager @Inject constructor(
                         imageUrl = metadata?.artworkUri?.toString() ?: "",
                     ),
                     positionMs = 0L,
+                    queue = queue,
+                    currentIndex = controller?.currentPosition ?: 0
                 )
             }
         }
@@ -81,8 +88,12 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            val queue = buildQueue()
             _playerState.update {
-                it.copy(shuffleEnabled = shuffleModeEnabled)
+                it.copy(
+                    shuffleEnabled = shuffleModeEnabled,
+                    queue = queue
+                )
             }
         }
 
@@ -92,6 +103,18 @@ class PlayerManager @Inject constructor(
                     isLoading = isLoading
                 )
             }
+        }
+
+        override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+            if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+                val queue = buildQueue()
+                _playerState.update {
+                    it.copy(
+                        queue = queue
+                    )
+                }
+            }
+            super.onTimelineChanged(timeline, reason)
         }
     }
 
@@ -120,8 +143,9 @@ class PlayerManager @Inject constructor(
                 playSong(
                     items = playerAction.items,
                     playlistId = playerAction.playlistId,
-                    index = playerAction.index
-
+                    index = playerAction.index,
+                    playListName = playerAction.playListName,
+                    reshuffle = playerAction.reshuffle
                 )
             }
 
@@ -191,6 +215,9 @@ class PlayerManager @Inject constructor(
     }
 
     private fun toggleShuffle() {
+        val order = getCustomShuffleOrder(playerState.value.currentIndex.toInt())
+        playerServiceStateHandler.onShuffleOrderChanged(order)
+
         controller?.let { player ->
             player.shuffleModeEnabled = !player.shuffleModeEnabled
         }
@@ -218,18 +245,27 @@ class PlayerManager @Inject constructor(
     private fun playSong(
         items: List<Track>,
         playlistId: String,
-        index: Int
+        playListName: String,
+        index: Int,
+        reshuffle: Boolean
     ) {
         val isSamePlaylist = playerState.value.currentlyPlayingPlaylistId == playlistId
         if (!isSamePlaylist) {
             _playerState.update {
-                PlayerState(currentlyPlayingPlaylistId = playlistId)
+                it.copy(
+                    currentlyPlayingPlaylistId = playlistId,
+                    currentlyPlayingPlaylistName = playListName
+                )
             }
             setItems(items, index)
         } else {
             controller?.seekTo(index, 0)
         }
-        controller?.play() ?: return
+        if (controller?.shuffleModeEnabled == true && reshuffle) {
+            val order = getCustomShuffleOrder(index)
+            playerServiceStateHandler.onShuffleOrderChanged(order)
+        }
+        playPause()
     }
 
     private fun buildStreamUrl(id: String): String {
@@ -263,5 +299,67 @@ class PlayerManager @Inject constructor(
         }
         controller = null
         stopProgressUpdates()
+    }
+
+    private fun getCustomShuffleOrder(index: Int): IntArray {
+        val count = controller?.mediaItemCount
+        if (count == null || count <= 0) {
+            return intArrayOf()
+        }
+        val indexes = (0 until count).toMutableList()
+        indexes.remove(index)
+        indexes.shuffle()
+        val finalOrder = listOf(index) + indexes
+        return finalOrder.toIntArray()
+    }
+
+    private fun buildQueue(): List<Track> {
+        val timeline = controller?.currentTimeline
+        if (timeline == null
+            || timeline.isEmpty
+            || controller == null
+            || controller?.currentMediaItem == null
+        ) return emptyList()
+
+        val window = Timeline.Window()
+        val result = mutableListOf<Track>()
+
+        var index = controller?.currentMediaItemIndex
+        if (index == C.INDEX_UNSET || index == null) return emptyList()
+        if (controller!!.repeatMode == Player.REPEAT_MODE_ONE) {
+            val item = controller!!.currentMediaItem!!
+            return listOf(
+                Track(
+                    id = item.mediaId,
+                    title = item.mediaMetadata.title?.toString() ?: "",
+                    artistName = item.mediaMetadata.artist?.toString() ?: "",
+                    imageUrl = item.mediaMetadata.artworkUri.toString(),
+                    playlistIndex = index
+                )
+            )
+        }
+
+        repeat(timeline.windowCount) {
+            timeline.getWindow(index!!, window)
+            val item = window.mediaItem
+            result.add(
+                Track(
+                    id = item.mediaId,
+                    title = item.mediaMetadata.title?.toString() ?: "",
+                    artistName = item.mediaMetadata.artist?.toString() ?: "",
+                    imageUrl = item.mediaMetadata.artworkUri.toString(),
+                    playlistIndex = index
+                )
+            )
+            index = timeline.getNextWindowIndex(
+                index,
+                controller!!.repeatMode,
+                controller!!.shuffleModeEnabled
+            )
+            if (index == C.INDEX_UNSET) {
+                return result
+            }
+        }
+        return result
     }
 }

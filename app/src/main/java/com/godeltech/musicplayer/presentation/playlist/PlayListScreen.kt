@@ -3,6 +3,7 @@ package com.godeltech.musicplayer.presentation.playlist
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +45,8 @@ fun PlayListScreen(
         factory.create(id = id)
     },
     onNavigateToPlayer: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    isMiniPlayerVisible: Boolean
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val playerState: PlayerState by viewModel.playerState.collectAsStateWithLifecycle()
@@ -63,7 +66,8 @@ fun PlayListScreen(
     PlayListScreenContent(
         state = state,
         onAction = viewModel::onAction,
-        playerState = playerState
+        playerState = playerState,
+        isMiniPlayerVisible = isMiniPlayerVisible
     )
 
 }
@@ -73,7 +77,8 @@ fun PlayListScreenContent(
     modifier: Modifier = Modifier,
     state: PlaylistState,
     playerState: PlayerState,
-    onAction: (PlaylistAction) -> Unit
+    onAction: (PlaylistAction) -> Unit,
+    isMiniPlayerVisible: Boolean
 ) {
     Box(
         modifier = modifier
@@ -83,104 +88,113 @@ fun PlayListScreenContent(
                 bottom = MusicPlayerTheme.padding.paddingXL
             )
     ) {
-        AsyncImage(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(
-                    RoundedCornerShape(
-                        MusicPlayerTheme.radius.radiusXS
-                    )
-                )
-                .blur(MusicPlayerTheme.radius.radiusXS),
-            contentScale = ContentScale.Crop,
-            model = state.data.playlistInfo.imageUrl.takeIf {
-                !it.isNullOrEmpty()
-            } ?: R.drawable.ic_notes,
-            contentDescription = null,
-            placeholder = painterResource(
-                R.drawable.ic_notes
-            ),
-            error = painterResource(
-                R.drawable.ic_notes
-            )
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.8f))
-        )
-
         if (state.isLoading) {
             ProgressIndicator(
                 modifier = Modifier.zIndex(1f)
             )
         } else if (state.isError) {
-            ErrorPage() {
-                //todo add reload
+            ErrorPage {
+                onAction(PlaylistAction.OnReloadClicked)
             }
-        }
-        val playListInfo = state.data.playlistInfo
-        Column {
-            MusicPlayerTopBar(
-                modifier = Modifier.consumeWindowInsets(WindowInsets.navigationBars),
-                title = state.data.playlistInfo.title,
-                endAction = {
-                    IconButton(onClick = {
-                        //todo implement search
-                    }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_search),
-                            tint = MusicPlayerTheme.projectColors.colorNeutralWhite,
-                            contentDescription = null
+        } else {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(
+                        RoundedCornerShape(
+                            MusicPlayerTheme.radius.radiusXS
+                        )
+                    )
+                    .blur(MusicPlayerTheme.radius.radiusXS),
+                contentScale = ContentScale.Crop,
+                model = state.data.playlistInfo.imageUrl.takeIf {
+                    !it.isNullOrEmpty()
+                } ?: R.drawable.ic_notes,
+                contentDescription = null,
+                placeholder = painterResource(
+                    R.drawable.ic_notes
+                ),
+                error = painterResource(
+                    R.drawable.ic_notes
+                )
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.8f))
+            )
+
+
+            val playListInfo = state.data.playlistInfo
+            Column {
+                MusicPlayerTopBar(
+                    modifier = Modifier.consumeWindowInsets(WindowInsets.navigationBars),
+                    title = state.data.playlistInfo.title,
+                    endAction = {
+                        IconButton(onClick = {
+                            //todo implement search
+                        }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_search),
+                                tint = MusicPlayerTheme.projectColors.colorNeutralWhite,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    onNavigationIconClicked = {
+                        onAction(PlaylistAction.OnNavigateBackClicked)
+                    }
+                )
+                val bottomPadding = if (isMiniPlayerVisible) {
+                    80.dp
+                } else 0.dp
+
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        bottom = bottomPadding
+                    )
+                ) {
+                    //todo - move
+                    val currentPlayListIsPlaying =
+                        (playerState.currentlyPlayingPlaylistId == playListInfo.id && playerState.isPlaying)
+                    item {
+                        AlbumCard(
+                            playlistName = playListInfo.title,
+                            releaseDate = playListInfo.releaseDate,
+                            description = if (playListInfo.descriptionExpanded) {
+                                playListInfo.description
+                            } else playListInfo.descriptionTruncated,
+                            imageUrl = playListInfo.imageUrl,
+                            isAlbum = playListInfo.isAlbum,
+                            modifier = Modifier.padding(
+                                top = MusicPlayerTheme.padding.paddingL,
+                                start = MusicPlayerTheme.padding.paddingXL,
+                                end = MusicPlayerTheme.padding.paddingXL
+                            ),
+                            onPlayClicked = {
+                                onAction(PlaylistAction.GlobalPlayClicked)
+                            },
+                            onReadMore = {
+                                onAction(PlaylistAction.OnReadMoreDescriptionClicked)
+                            },
+                            hasReadMore = playListInfo.hasReadMore,
+                            isPlaying = currentPlayListIsPlaying,
+                            isLoading = playerState.isLoading,
+                            isExpanded = state.data.playlistInfo.descriptionExpanded
                         )
                     }
-                },
-                onNavigationIconClicked = {
-                    onAction(PlaylistAction.OnNavigateBackClicked)
-                }
-            )
-            LazyColumn(
-            ) {
-                //todo - move
-                val currentPlayListIsPlaying =
-                    (playerState.currentlyPlayingPlaylistId == playListInfo.id && playerState.isPlaying)
-                item {
-                    AlbumCard(
-                        playlistName = playListInfo.title,
-                        releaseDate = playListInfo.releaseDate,
-                        description = if (playListInfo.descriptionExpanded) {
-                            playListInfo.description
-                        } else playListInfo.descriptionTruncated,
-                        imageUrl = playListInfo.imageUrl,
-                        isAlbum = playListInfo.isAlbum,
-                        modifier = Modifier.padding(
-                            top = MusicPlayerTheme.padding.paddingL,
-                            start = MusicPlayerTheme.padding.paddingXL,
-                            end = MusicPlayerTheme.padding.paddingXL
-                        ),
-                        onPlayClicked = {
-                            onAction(PlaylistAction.GlobalPlayClicked)
-                        },
-                        onReadMore = {
-                            onAction(PlaylistAction.OnReadMoreDescriptionClicked)
-                        },
-                        hasReadMore = playListInfo.hasReadMore,
-                        isPlaying = currentPlayListIsPlaying,
-                        isLoading = playerState.isLoading,
-                        isExpanded = state.data.playlistInfo.descriptionExpanded
-                    )
-                }
-                itemsIndexed(state.data.tracks) { index, item ->
-                    PlaylistTrackRow(
-                        imageUrl = item.imageUrl,
-                        artistName = item.artistName,
-                        trackName = item.title,
-                        onClick = {
-                            onAction(PlaylistAction.TrackClicked(index))
-                        },
-                        isPlaying = (playerState.currentlyPlayingTrack.id == item.id) && playerState.isPlaying
-                    )
+                    itemsIndexed(state.data.tracks) { index, item ->
+                        PlaylistTrackRow(
+                            imageUrl = item.imageUrl,
+                            artistName = item.artistName,
+                            trackName = item.title,
+                            onClick = {
+                                onAction(PlaylistAction.TrackClicked(index))
+                            },
+                            isPlaying = (playerState.currentlyPlayingTrack.id == item.id) && playerState.isPlaying
+                        )
+                    }
                 }
             }
         }
@@ -193,6 +207,7 @@ private fun PlayListScreenContentPreview() {
     PlayListScreenContent(
         state = PlaylistState.Idle,
         onAction = {},
-        playerState = PlayerState()
+        playerState = PlayerState(),
+        isMiniPlayerVisible = false
     )
 }

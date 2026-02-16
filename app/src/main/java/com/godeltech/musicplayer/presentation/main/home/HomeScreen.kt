@@ -34,7 +34,8 @@ import com.godeltech.musicplayer.presentation.theme.MusicPlayerTheme
 fun HomeScreen(
     onNavigateToPlayer: () -> Unit,
     onNavigateToPlaylist: (id: String) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    isMiniPlayerVisible: Boolean
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -52,7 +53,8 @@ fun HomeScreen(
 
     HomeScreenContent(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        isMiniPlayerVisible = isMiniPlayerVisible
     )
 }
 
@@ -60,7 +62,8 @@ fun HomeScreen(
 fun HomeScreenContent(
     modifier: Modifier = Modifier,
     state: HomeState,
-    onAction: (HomeAction) -> Unit
+    onAction: (HomeAction) -> Unit,
+    isMiniPlayerVisible: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -73,11 +76,10 @@ fun HomeScreenContent(
                 modifier = Modifier.zIndex(1f)
             )
         } else if (state.isError) {
-            ErrorPage() {
-                //todo add reload
+            ErrorPage {
+                onAction(HomeAction.ReloadClicked)
             }
         } else if (state != HomeState.Idle) {
-
             Column(
                 modifier
                     .fillMaxSize()
@@ -178,6 +180,10 @@ fun HomeScreenContent(
                     }
                 }
 
+                val bottomPadding = if (isMiniPlayerVisible) {
+                    120.dp
+                } else 0.dp
+
                 //recommended playlists
                 Text(
                     text = stringResource(R.string.string_home_recommended_albums_heading),
@@ -187,7 +193,11 @@ fun HomeScreenContent(
                 )
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(MusicPlayerTheme.padding.paddingL),
-                    contentPadding = PaddingValues(horizontal = MusicPlayerTheme.padding.paddingXL)
+                    contentPadding = PaddingValues(
+                        start = MusicPlayerTheme.padding.paddingXL,
+                        end = MusicPlayerTheme.padding.paddingXL,
+                        bottom = bottomPadding
+                    )
                 ) {
                     items(
                         items = state.data.recommendedPlaylists,
@@ -216,6 +226,7 @@ fun HomeScreenContent(
 private fun HomeScreenPreview() {
     HomeScreen(
         onNavigateToPlayer = {},
-        onNavigateToPlaylist = {}
+        onNavigateToPlaylist = {},
+        isMiniPlayerVisible = false
     )
 }

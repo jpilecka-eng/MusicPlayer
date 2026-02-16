@@ -21,4 +21,9 @@ class Navigator(val state: NavigationState) {
             currentStack.removeLastOrNull()
         }
     }
+
+    fun getCurrentScreenName(): NavKey? {
+        val currentStack = state.backStacks[state.topLevelRoute]
+        return currentStack?.last()
+    }
 }

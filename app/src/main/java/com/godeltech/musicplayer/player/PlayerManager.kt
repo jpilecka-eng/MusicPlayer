@@ -1,26 +1,33 @@
 package com.godeltech.musicplayer.player
 
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import com.godeltech.musicplayer.player.controller.ControllerProvider
 import com.godeltech.musicplayer.player.service.PlayerServiceStateHandler
+import com.godeltech.musicplayer.presentation.common.extensions.sendEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "PlayerManager"
 
 @Singleton
 class PlayerManager @Inject constructor(
@@ -33,6 +40,9 @@ class PlayerManager @Inject constructor(
 
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+
+    private val _event = Channel<PlayerEvent>()
+    val event = _event.receiveAsFlow()
 
     private var progressJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -56,6 +66,7 @@ class PlayerManager @Inject constructor(
                     repeatMode = repeatMode
                 )
             }
+            updateSkipPositions()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -74,6 +85,7 @@ class PlayerManager @Inject constructor(
                     currentIndex = controller?.currentPosition ?: 0
                 )
             }
+            updateSkipPositions()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -95,6 +107,7 @@ class PlayerManager @Inject constructor(
                     queue = queue
                 )
             }
+            updateSkipPositions()
         }
 
         override fun onIsLoadingChanged(isLoading: Boolean) {
@@ -114,7 +127,15 @@ class PlayerManager @Inject constructor(
                     )
                 }
             }
-            super.onTimelineChanged(timeline, reason)
+            updateSkipPositions()
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            Log.d(TAG, "Error: $error")
+            _event.sendEvent(scope) {
+                PlayerEvent.Error
+            }
+            super.onPlayerError(error)
         }
     }
 
@@ -124,6 +145,7 @@ class PlayerManager @Inject constructor(
                 if (controller != null) {
                     this@PlayerManager.controller = controller
                     controller.addListener(listener)
+                    updateSkipPositions()
                 }
             }
         }
@@ -361,5 +383,16 @@ class PlayerManager @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun updateSkipPositions() {
+        controller?.let {
+            _playerState.update {
+                it.copy(
+                    hasNext = controller?.hasNextMediaItem() == true,
+                    hasPrev = controller?.hasPreviousMediaItem() == true
+                )
+            }
+        }
     }
 }

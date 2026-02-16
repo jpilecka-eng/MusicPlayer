@@ -48,4 +48,6 @@ sealed class HomeAction {
     data class AlbumClicked(
         val id: String
     ) : HomeAction()
+
+    data object ReloadClicked : HomeAction()
 }

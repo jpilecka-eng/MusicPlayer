@@ -32,10 +32,10 @@ fun PlaylistTrackRow(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
             .clickable {
                 onClick()
             }
+            .fillMaxWidth()
             .padding(
                 start = MusicPlayerTheme.padding.paddingXL,
                 end = MusicPlayerTheme.padding.paddingXL,

@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,6 +35,7 @@ import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import com.godeltech.musicplayer.R
 import com.godeltech.musicplayer.player.PlayerState
+import com.godeltech.musicplayer.presentation.common.extensions.collectSiteEffectWithLifecycle
 import com.godeltech.musicplayer.presentation.components.MusicPlayerSlider
 import com.godeltech.musicplayer.presentation.components.ProgressIndicator
 import com.godeltech.musicplayer.presentation.components.RoundButton
@@ -43,9 +45,19 @@ import com.godeltech.musicplayer.presentation.theme.MusicPlayerTheme
 fun PlayerScreen(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
 ) {
     val playerState by viewModel.playerState.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    viewModel.event.collectSiteEffectWithLifecycle { event ->
+        when (event) {
+            is PlayerUIEvent.OnNavigateBack -> {
+                onNavigateBack()
+            }
+        }
+    }
+
     PlayerScreenContent(
         modifier = modifier,
         onAction = viewModel::onAction,
@@ -71,17 +83,16 @@ fun PlayerScreenContent(
                 modifier = Modifier.zIndex(1f)
             )
         }
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
         val queue = playerState.queue
         val queueSizeWithoutPlayingTrack = remember(queue) {
             if (queue.size <= 1) emptyList() else queue.drop(1)
         }
+
         if (state.data.showQueue) {
             PlayerQueueBottomSheet(
                 onDismissRequest = {
                     onAction(PlayerUIAction.OnBottomSheetDismissed)
                 },
-                sheetState = sheetState,
                 queue = queueSizeWithoutPlayingTrack,
                 playlistName = playerState.currentlyPlayingPlaylistName,
                 playingTrack = playerState.queue[0],
@@ -124,6 +135,39 @@ fun PlayerScreenContent(
                     )
                 )
         )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to MusicPlayerTheme.projectColors.colorNeutralBlack.copy(alpha = 0.55f),
+                            0.3f to MusicPlayerTheme.projectColors.colorNeutralBlack.copy(alpha = 0.25f),
+                            1.0f to Color.Transparent
+                        )
+                    )
+                )
+        )
+
+        RoundButton(
+            iconSize = MusicPlayerTheme.spacing.spacingXL,
+            backgroundColor = MusicPlayerTheme.projectColors.colorNeutralWhite16,
+            iconRes = R.drawable.ic_arrow_down,
+            description = R.string.string_player_ic_close_description,
+            onClick = {
+                onAction(PlayerUIAction.OnBackClicked)
+            },
+            isLoading = false,
+            modifier = Modifier
+                .padding(
+                    horizontal = MusicPlayerTheme.padding.paddingXL,
+                    vertical = MusicPlayerTheme.padding.paddingL
+                )
+                .size(MusicPlayerTheme.spacing.spacingXXXXL)
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -154,6 +198,7 @@ fun PlayerScreenContent(
             )
 
             MusicPlayerSlider(
+                modifier = Modifier.padding(top = MusicPlayerTheme.spacing.spacingXXXL),
                 durationFormatted = state.data.playerDurationFormatted,
                 sliderPosition = state.data.sliderPositionNormalized,
                 onSliderValueChange = { value ->
@@ -162,9 +207,10 @@ fun PlayerScreenContent(
                 onSliderChangeFinished = {
                     onAction(PlayerUIAction.OnSliderValueChangeFinished)
                 },
-                positionFormatted = state.data.playerPositionFormatted
-
+                positionFormatted = state.data.playerPositionFormatted,
+                showTimeLabels = true
             )
+
             val repeatMode = playerState.repeatMode
             val icon = when (repeatMode) {
                 Player.REPEAT_MODE_ONE -> {
@@ -197,7 +243,9 @@ fun PlayerScreenContent(
                     onAction(PlayerUIAction.OnShuffleClicked)
                 },
                 shuffleEnabled = playerState.shuffleEnabled,
-                isLoading = playerState.isLoading
+                isLoading = playerState.isLoading,
+                hasNext = playerState.hasNext,
+                hasPrev = playerState.hasPrev
             )
         }
 
@@ -268,7 +316,9 @@ fun PlaybackControlsRow(
     onNextClicked: () -> Unit,
     onPrevClicked: () -> Unit,
     onRepeatClicked: () -> Unit,
-    onShuffleClicked: () -> Unit
+    onShuffleClicked: () -> Unit,
+    hasNext: Boolean,
+    hasPrev: Boolean
 ) {
     Row(
         modifier = modifier
@@ -301,7 +351,8 @@ fun PlaybackControlsRow(
             description = R.string.string_player_ic_previous_description,
             onClick = {
                 onPrevClicked()
-            }
+            },
+            enabled = hasPrev
         )
         val icon = if (isPlaying) {
             R.drawable.ic_pause
@@ -313,7 +364,8 @@ fun PlaybackControlsRow(
             iconSize = MusicPlayerTheme.spacing.spacingXXXL,
             description = R.string.string_player_ic_play_description,
             onClick = onPlayClicked,
-            isLoading = isLoading
+            isLoading = isLoading,
+            progressIndicatorSize = MusicPlayerTheme.spacing.spacingXXXXXXL
 
         )
         RoundButton(
@@ -321,7 +373,8 @@ fun PlaybackControlsRow(
             modifier = Modifier.size(MusicPlayerTheme.spacing.spacingXXXXXL),
             iconSize = MusicPlayerTheme.spacing.spacingXXL,
             description = R.string.string_player_ic_next_description,
-            onClick = onNextClicked
+            onClick = onNextClicked,
+            enabled = hasNext
         )
 
         Icon(

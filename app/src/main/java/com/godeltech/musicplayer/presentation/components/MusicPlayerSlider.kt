@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -23,6 +22,7 @@ fun MusicPlayerSlider(
     durationFormatted: String,
     sliderPosition: Float,
     positionFormatted: String,
+    showTimeLabels: Boolean = false,
     onSliderValueChange: (duration: Float) -> Unit,
     onSliderChangeFinished: () -> Unit
 ) {
@@ -30,8 +30,7 @@ fun MusicPlayerSlider(
         modifier = modifier
     ) {
         Slider(
-            modifier = Modifier
-                .padding(top = MusicPlayerTheme.spacing.spacingXXXL),
+            modifier = Modifier,
             value = sliderPosition,
             onValueChange = { onSliderValueChange(it) },
             onValueChangeFinished = {
@@ -59,20 +58,22 @@ fun MusicPlayerSlider(
             },
             thumb = {}
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = positionFormatted,
-                color = MusicPlayerTheme.projectColors.colorNeutralWhite64,
-                style = MusicPlayerTheme.typography.textButtonSm
-            )
-            Text(
-                text = durationFormatted,
-                color = MusicPlayerTheme.projectColors.colorNeutralWhite64,
-                style = MusicPlayerTheme.typography.textButtonSm
-            )
+        if (showTimeLabels) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = positionFormatted,
+                    color = MusicPlayerTheme.projectColors.colorNeutralWhite64,
+                    style = MusicPlayerTheme.typography.textButtonSm
+                )
+                Text(
+                    text = durationFormatted,
+                    color = MusicPlayerTheme.projectColors.colorNeutralWhite64,
+                    style = MusicPlayerTheme.typography.textButtonSm
+                )
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,31 +32,37 @@ fun RoundButton(
     iconRes: Int,
     description: Int,
     onClick: () -> Unit,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    progressIndicatorSize: Dp = 10.dp,
+    backgroundColor: Color = MusicPlayerTheme.projectColors.colorNeutralWhite8,
+    enabled: Boolean = true
 ) {
+    val tint = if (enabled) {
+        MusicPlayerTheme.projectColors.colorNeutralWhite
+    } else MusicPlayerTheme.projectColors.colorNeutralWhite.copy(0.3f)
     Box(
         modifier = modifier
-            .clickable {
-                onClick()
-            }
             .clip(
                 RoundedCornerShape(MusicPlayerTheme.radius.radiusXL)
             )
-            .background(MusicPlayerTheme.projectColors.colorNeutralWhite8),
+            .background(backgroundColor)
+            .clickable {
+                onClick()
+            },
         contentAlignment = Alignment.Center
 
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 color = MusicPlayerTheme.projectColors.colorPrimary,
-                modifier = modifier
+                modifier = Modifier.size(progressIndicatorSize)
             )
         } else {
             Icon(
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(iconRes),
                 contentDescription = stringResource(description),
-                tint = MusicPlayerTheme.projectColors.colorNeutralWhite
+                tint = tint
             )
         }
     }
@@ -102,6 +109,7 @@ private fun RoundButtonPreview() {
         iconSize = 18.dp,
         description = R.string.string_player_ic_play_description,
         onClick = {},
-        isLoading = true
+        isLoading = true,
+        progressIndicatorSize = 18.dp
     )
 }

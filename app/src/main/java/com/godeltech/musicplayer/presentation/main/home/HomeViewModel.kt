@@ -13,9 +13,12 @@ import com.godeltech.musicplayer.presentation.common.extensions.sendEvent
 import com.godeltech.musicplayer.presentation.common.extensions.zip3
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val TAG = "HomeViewModel"
@@ -39,7 +43,7 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState.Idle)
     val state = _state
         .onStart {
-            loadData()
+            refresh()
         }
         .stateIn(
             viewModelScope,
@@ -49,6 +53,15 @@ class HomeViewModel @Inject constructor(
 
     private val _event = Channel<HomeEvent>()
     val event = _event.receiveAsFlow()
+
+    private val refreshTrigger = MutableSharedFlow<Unit>()
+
+    init {
+        refreshTrigger
+            .flatMapLatest {
+                loadData()
+            }.launchIn(viewModelScope)
+    }
 
     fun onAction(homeAction: HomeAction) {
         when (homeAction) {
@@ -70,6 +83,8 @@ class HomeViewModel @Inject constructor(
                         emptyList()
                     }
                 }
+                val firstNavigation =
+                    playerControls.playerState.value.currentlyPlayingTrack.id.isEmpty()
                 playerControls.onAction(
                     PlayerAction.PlaySong(
                         trackList,
@@ -79,8 +94,10 @@ class HomeViewModel @Inject constructor(
                         reshuffle = true
                     )
                 )
-                _event.sendEvent(viewModelScope) {
-                    HomeEvent.NavigateToPlayer
+                if (firstNavigation) {
+                    _event.sendEvent(viewModelScope) {
+                        HomeEvent.NavigateToPlayer
+                    }
                 }
             }
 
@@ -89,19 +106,24 @@ class HomeViewModel @Inject constructor(
                     HomeEvent.NavigateToPlaylist(homeAction.id)
                 }
             }
+
+            is HomeAction.ReloadClicked -> {
+                refresh()
+            }
         }
     }
 
-    private fun loadData() {
+    private fun loadData(): Flow<HomeModel> {
         val trendingTracksFlow = trackRepository.getTrendingTracks()
         val recentTracksFlow = trackRepository.getRecentTracks()
         val recommendedPlaylistsFlow = playlistRepository.getRecommendedPlaylists()
-        trendingTracksFlow.zip3(recentTracksFlow, recommendedPlaylistsFlow)
+        return trendingTracksFlow.zip3(recentTracksFlow, recommendedPlaylistsFlow)
             .flowOn(dispatcherProvider.io())
             .onStart {
                 _state.update {
                     it.copy(
-                        isLoading = true
+                        isLoading = true,
+                        isError = false
                     )
                 }
             }
@@ -117,7 +139,8 @@ class HomeViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        data = data
+                        data = data,
+                        isError = false
                     )
                 }
             }
@@ -129,6 +152,12 @@ class HomeViewModel @Inject constructor(
                         isError = true
                     )
                 }
-            }.launchIn(viewModelScope)
+            }
+    }
+
+    private fun refresh() {
+        viewModelScope.launch {
+            refreshTrigger.emit(Unit)
+        }
     }
 }

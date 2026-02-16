@@ -1,6 +1,5 @@
 package com.godeltech.musicplayer.presentation.player
 
-
 data class PlayerState(
     val isLoading: Boolean = false,
     val isError: Boolean = false,
@@ -17,8 +16,12 @@ data class PlayerModel(
     val playerPositionFormatted: String = "",
     val playerDurationFormatted: String = "",
     val isSeeking: Boolean = false,
-    val showQueue: Boolean = false
+    val showQueue: Boolean = false,
 )
+
+sealed class PlayerUIEvent {
+    data object OnNavigateBack : PlayerUIEvent()
+}
 
 sealed class PlayerUIAction {
     data object PlayButtonClicked : PlayerUIAction()
@@ -31,4 +34,5 @@ sealed class PlayerUIAction {
     data object OnQueueClicked : PlayerUIAction()
     data object OnBottomSheetDismissed : PlayerUIAction()
     data class OnQueueItemClicked(val index: Int) : PlayerUIAction()
+    data object OnBackClicked : PlayerUIAction()
 }

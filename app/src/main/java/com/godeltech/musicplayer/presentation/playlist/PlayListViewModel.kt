@@ -12,17 +12,22 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.launch
 
 @HiltViewModel(
     assistedFactory = PlayListViewModel.Factory::class
@@ -44,17 +49,31 @@ class PlayListViewModel @AssistedInject constructor(
     val event = _event.receiveAsFlow()
 
     private val _state = MutableStateFlow(PlaylistState.Idle)
-    val state = _state.asStateFlow()
+    val state = _state
+        .onStart {
+            refresh()
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(10000L),
+            PlaylistState.Idle
+        )
 
     val playerState = playerControls.playerState
+    private val refreshTrigger = MutableSharedFlow<Unit>()
 
     init {
-        loadData(id)
+        refreshTrigger
+            .flatMapLatest {
+                loadData(id)
+            }.launchIn(viewModelScope)
     }
 
     fun onAction(playlistAction: PlaylistAction) {
         when (playlistAction) {
             is PlaylistAction.GlobalPlayClicked -> {
+                val firstNavigation =
+                    playerControls.playerState.value.currentlyPlayingTrack.id.isEmpty()
                 playerControls.onAction(
                     PlayerAction.PlayPlaylist(
                         state.value.data.tracks,
@@ -63,7 +82,7 @@ class PlayListViewModel @AssistedInject constructor(
                 )
                 val isActive =
                     playerState.value.currentlyPlayingPlaylistId == state.value.data.playlistInfo.id
-                if (!isActive) {
+                if (!isActive && firstNavigation) {
                     _event.sendEvent(viewModelScope) {
                         PlaylistEvent.NavigateToPlayer
                     }
@@ -71,6 +90,8 @@ class PlayListViewModel @AssistedInject constructor(
             }
 
             is PlaylistAction.TrackClicked -> {
+                val firstNavigation =
+                    playerControls.playerState.value.currentlyPlayingTrack.id.isEmpty()
                 playerControls.onAction(
                     PlayerAction.PlaySong(
                         state.value.data.tracks,
@@ -80,8 +101,10 @@ class PlayListViewModel @AssistedInject constructor(
                         reshuffle = true
                     )
                 )
-                _event.sendEvent(viewModelScope) {
-                    PlaylistEvent.NavigateToPlayer
+                if (firstNavigation) {
+                    _event.sendEvent(viewModelScope) {
+                        PlaylistEvent.NavigateToPlayer
+                    }
                 }
             }
 
@@ -102,11 +125,15 @@ class PlayListViewModel @AssistedInject constructor(
                     PlaylistEvent.NavigateBack
                 }
             }
+
+            is PlaylistAction.OnReloadClicked -> {
+                refresh()
+            }
         }
     }
 
-    private fun loadData(id: String) {
-        playlistRepository.getPlaylistTracks(id)
+    private fun loadData(id: String): Flow<PlaylistModel> {
+        return playlistRepository.getPlaylistTracks(id)
             .zip(playlistRepository.getPlaylist(id)) { tracks, playlist ->
                 Pair(tracks, playlist)
             }
@@ -114,7 +141,8 @@ class PlayListViewModel @AssistedInject constructor(
             .onStart {
                 _state.update {
                     it.copy(
-                        isLoading = true
+                        isLoading = true,
+                        isError = false
                     )
                 }
             }
@@ -128,7 +156,8 @@ class PlayListViewModel @AssistedInject constructor(
                 _state.update {
                     it.copy(
                         data = data,
-                        isLoading = false
+                        isLoading = false,
+                        isError = false
                     )
                 }
             }
@@ -139,6 +168,12 @@ class PlayListViewModel @AssistedInject constructor(
                         isError = true
                     )
                 }
-            }.launchIn(viewModelScope)
+            }
+    }
+
+    private fun refresh() {
+        viewModelScope.launch {
+            refreshTrigger.emit(Unit)
+        }
     }
 }

@@ -34,6 +34,7 @@ sealed class PlaylistAction {
     data class TrackClicked(val index: Int) : PlaylistAction()
     data object OnReadMoreDescriptionClicked : PlaylistAction()
     data object OnNavigateBackClicked : PlaylistAction()
+    data object OnReloadClicked : PlaylistAction()
 }
 
 sealed class PlaylistEvent {

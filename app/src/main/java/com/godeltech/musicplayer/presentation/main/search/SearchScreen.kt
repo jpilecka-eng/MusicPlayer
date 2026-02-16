@@ -22,6 +22,5 @@ fun SearchScreen(modifier: Modifier = Modifier) {
             "Search",
             color = MusicPlayerTheme.projectColors.colorNeutralWhite
         )
-
     }
 }

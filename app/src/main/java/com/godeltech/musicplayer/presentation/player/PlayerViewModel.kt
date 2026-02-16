@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.godeltech.musicplayer.player.PlayerAction
 import com.godeltech.musicplayer.player.PlayerManager
+import com.godeltech.musicplayer.presentation.common.extensions.sendEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -24,6 +27,9 @@ class PlayerViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(PlayerState.Idle)
     val state = _state.asStateFlow()
+
+    private val _event = Channel<PlayerUIEvent>()
+    val event = _event.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -71,12 +77,17 @@ class PlayerViewModel @Inject constructor(
             }
 
             is PlayerUIAction.NextClicked -> {
-                playerControls.onAction(PlayerAction.PlayNext)
-
+                val hasNext = playerState.value.hasNext
+                if (hasNext) {
+                    playerControls.onAction(PlayerAction.PlayNext)
+                }
             }
 
             is PlayerUIAction.PrevClicked -> {
-                playerControls.onAction(PlayerAction.PlayPrevious)
+                val hasPrev = playerState.value.hasPrev
+                if (hasPrev) {
+                    playerControls.onAction(PlayerAction.PlayPrevious)
+                }
             }
 
             is PlayerUIAction.OnSliderValueChanged -> {
@@ -147,6 +158,12 @@ class PlayerViewModel @Inject constructor(
                         reshuffle = false
                     )
                 )
+            }
+
+            is PlayerUIAction.OnBackClicked -> {
+                _event.sendEvent(viewModelScope) {
+                    PlayerUIEvent.OnNavigateBack
+                }
             }
         }
     }

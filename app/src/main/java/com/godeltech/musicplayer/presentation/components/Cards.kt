@@ -236,7 +236,8 @@ fun AlbumCard(
                 iconSize = MusicPlayerTheme.spacing.spacingXXXL,
                 description = R.string.string_player_ic_play_description,
                 onClick = onPlayClicked,
-                isLoading = isLoading
+                isLoading = isLoading,
+                progressIndicatorSize = MusicPlayerTheme.spacing.spacingXXXXXXL
             )
         }
     }

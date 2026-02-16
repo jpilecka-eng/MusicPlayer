@@ -15,7 +15,9 @@ data class PlayerState(
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val shuffleEnabled: Boolean = false,
     val queue: List<Track> = emptyList(),
-    val currentIndex: Long = 0
+    val currentIndex: Long = 0,
+    val hasNext: Boolean = false,
+    val hasPrev: Boolean = false
 )
 
 data class Track(
@@ -46,4 +48,8 @@ sealed class PlayerAction {
     data class SeekTo(val positionMs: Long) : PlayerAction()
     data object Repeat : PlayerAction()
     data object Shuffle : PlayerAction()
+}
+
+sealed class PlayerEvent {
+    data object Error : PlayerEvent()
 }

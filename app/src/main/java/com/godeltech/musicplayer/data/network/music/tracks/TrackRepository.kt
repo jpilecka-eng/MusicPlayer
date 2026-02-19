@@ -19,4 +19,9 @@ class TrackRepository(
         val track = trackService.getTrack(id)
         emit(track)
     }
+
+    fun searchTracks(query: String, sortMethod: String) = flow {
+        val result = trackService.searchTrack(query, sortMethod)
+        emit(result)
+    }
 }

@@ -161,7 +161,15 @@ private fun AppContent(
                             )
                         }
                         entry<Route.Search> {
-                            SearchScreen()
+                            SearchScreen(
+                                isMiniPlayerVisible = miniPlayerVisible,
+                                onNavigateToPlayer = {
+                                    navigator.navigate(Route.Player)
+                                },
+                                onNavigateToPlaylist = { id ->
+                                    navigator.navigate(Route.Playlist(id))
+                                }
+                            )
                         }
                         entry<Route.Library> {
                             LibraryScreen()

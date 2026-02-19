@@ -37,8 +37,6 @@ fun PlaylistTrackRow(
             }
             .fillMaxWidth()
             .padding(
-                start = MusicPlayerTheme.padding.paddingXL,
-                end = MusicPlayerTheme.padding.paddingXL,
                 top = MusicPlayerTheme.padding.paddingXL
             ),
         verticalAlignment = Alignment.CenterVertically,

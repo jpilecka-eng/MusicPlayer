@@ -42,7 +42,8 @@ data class Radius(
     val radiusS: Dp = 12.dp,
     val radiusM: Dp = 16.dp,
     val radiusL: Dp = 24.dp,
-    val radiusXL: Dp = 32.dp
+    val radiusXL: Dp = 32.dp,
+    val radiusXXL: Dp = 48.dp
 )
 
 val textSizeXXS = 10.sp

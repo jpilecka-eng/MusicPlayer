@@ -29,7 +29,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerQueueBottomSheet(
@@ -70,14 +69,18 @@ fun PlayerQueueBottomSheetContent(
     onItemClicked: (index: Int) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
-    Column {
+    Column(
+        modifier = Modifier
+            .padding(
+                start = MusicPlayerTheme.padding.paddingXL,
+                end = MusicPlayerTheme.padding.paddingXL
+            )
+    ) {
         Text(
             text = stringResource(R.string.string_player_queue_bottom_sheet_heading),
             style = MusicPlayerTheme.typography.textHeading6,
             color = MusicPlayerTheme.projectColors.colorNeutralWhite,
             modifier = Modifier.padding(
-                start = MusicPlayerTheme.padding.paddingXL,
-                end = MusicPlayerTheme.padding.paddingXL,
                 bottom = MusicPlayerTheme.padding.paddingXS
             )
         )
@@ -86,9 +89,6 @@ fun PlayerQueueBottomSheetContent(
                 text = stringResource(R.string.string_player_queue_bottom_sheet_playing),
                 style = MusicPlayerTheme.typography.textButtonSm,
                 color = MusicPlayerTheme.projectColors.colorNeutralWhite64,
-                modifier = Modifier.padding(
-                    start = MusicPlayerTheme.padding.paddingXL
-                )
             )
             Text(
                 text = playlistName,
@@ -115,7 +115,6 @@ fun PlayerQueueBottomSheetContent(
                 contentDescription = null,
                 Modifier
                     .padding(
-                        start = MusicPlayerTheme.padding.paddingXL,
                         top = MusicPlayerTheme.padding.paddingXL,
                         bottom = MusicPlayerTheme.padding.paddingXS
                     )

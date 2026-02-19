@@ -1,14 +1,15 @@
 package com.godeltech.musicplayer.presentation.playlist
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -85,7 +86,9 @@ fun PlayListScreenContent(
             .fillMaxSize()
             .background(MusicPlayerTheme.projectColors.colorNeutralBlack)
             .padding(
-                bottom = MusicPlayerTheme.padding.paddingXL
+                bottom = MusicPlayerTheme.padding.paddingXL,
+                start = MusicPlayerTheme.padding.paddingXL,
+                end = MusicPlayerTheme.padding.paddingXL
             )
     ) {
         if (state.isLoading) {
@@ -108,7 +111,7 @@ fun PlayListScreenContent(
                     .blur(MusicPlayerTheme.radius.radiusXS),
                 contentScale = ContentScale.Crop,
                 model = state.data.playlistInfo.imageUrl.takeIf {
-                    !it.isNullOrEmpty()
+                    it.isNotEmpty()
                 } ?: R.drawable.ic_notes,
                 contentDescription = null,
                 placeholder = painterResource(
@@ -125,11 +128,12 @@ fun PlayListScreenContent(
                     .background(Color.Black.copy(alpha = 0.8f))
             )
 
-
             val playListInfo = state.data.playlistInfo
             Column {
                 MusicPlayerTopBar(
-                    modifier = Modifier.consumeWindowInsets(WindowInsets.navigationBars),
+                    modifier = Modifier.consumeWindowInsets(
+                        WindowInsets.statusBars
+                    ),
                     title = state.data.playlistInfo.title,
                     endAction = {
                         IconButton(onClick = {
@@ -142,8 +146,19 @@ fun PlayListScreenContent(
                             )
                         }
                     },
-                    onNavigationIconClicked = {
-                        onAction(PlaylistAction.OnNavigateBackClicked)
+                    navigationIcon = {
+                        Icon(
+                            contentDescription = null,
+                            painter = painterResource(R.drawable.ic_arrow_left),
+                            tint = MusicPlayerTheme.projectColors.colorNeutralWhite,
+                            modifier = Modifier
+                                .clickable {
+                                    onAction(PlaylistAction.OnNavigateBackClicked)
+                                }
+                                .padding(
+                                    end = MusicPlayerTheme.padding.paddingXS
+                                )
+                        )
                     }
                 )
                 val bottomPadding = if (isMiniPlayerVisible) {
@@ -168,9 +183,7 @@ fun PlayListScreenContent(
                             imageUrl = playListInfo.imageUrl,
                             isAlbum = playListInfo.isAlbum,
                             modifier = Modifier.padding(
-                                top = MusicPlayerTheme.padding.paddingL,
-                                start = MusicPlayerTheme.padding.paddingXL,
-                                end = MusicPlayerTheme.padding.paddingXL
+                                top = MusicPlayerTheme.padding.paddingL
                             ),
                             onPlayClicked = {
                                 onAction(PlaylistAction.GlobalPlayClicked)

@@ -1,6 +1,5 @@
 package com.godeltech.musicplayer.presentation.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,12 +21,10 @@ fun MusicPlayerTopBar(
     modifier: Modifier = Modifier,
     title: String,
     endAction: (@Composable () -> Unit)? = null,
-    onNavigationIconClicked: () -> Unit
+    navigationIcon: @Composable () -> Unit
 ) {
     TopAppBar(
         windowInsets = WindowInsets(
-            MusicPlayerTheme.padding.paddingS,
-            MusicPlayerTheme.padding.paddingS,
             MusicPlayerTheme.padding.paddingS,
             MusicPlayerTheme.padding.paddingS
         ),
@@ -45,20 +42,7 @@ fun MusicPlayerTopBar(
                 )
             )
         },
-        navigationIcon = {
-            Icon(
-                contentDescription = null,
-                painter = painterResource(R.drawable.ic_arrow_left),
-                tint = MusicPlayerTheme.projectColors.colorNeutralWhite,
-                modifier = Modifier
-                    .clickable {
-                        onNavigationIconClicked()
-                    }
-                    .padding(
-                        horizontal = MusicPlayerTheme.padding.paddingXS
-                    )
-            )
-        },
+        navigationIcon = navigationIcon,
         actions = { endAction?.invoke() }
     )
 }
@@ -77,6 +61,16 @@ private fun MusicPlayerTopBarPreview() {
                 )
             }
         },
-        onNavigationIconClicked = {}
+        navigationIcon = {
+            Icon(
+                contentDescription = null,
+                painter = painterResource(R.drawable.ic_arrow_left),
+                tint = MusicPlayerTheme.projectColors.colorNeutralWhite,
+                modifier = Modifier
+                    .padding(
+                        horizontal = MusicPlayerTheme.padding.paddingXS
+                    )
+            )
+        }
     )
 }

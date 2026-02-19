@@ -19,4 +19,9 @@ class PlaylistRepository(
         val playListInfo = playlistService.getPlaylists(id)
         emit(playListInfo)
     }
+
+    fun getSearchedPlaylists(query: String, sortMethod: String) = flow {
+        val playlists = playlistService.getSearchedPlaylists(query, sortMethod)
+        emit(playlists)
+    }
 }

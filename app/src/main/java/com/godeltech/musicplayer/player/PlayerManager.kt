@@ -157,6 +157,16 @@ class PlayerManager @Inject constructor(
                 }
             }
         }
+        scope.launch {
+            playerServiceStateHandler.shuffleOrderUpdated.collect {
+                val queue = buildQueue()
+                _playerState.update {
+                    it.copy(
+                        queue = queue
+                    )
+                }
+            }
+        }
     }
 
     fun onAction(playerAction: PlayerAction) {
@@ -269,7 +279,7 @@ class PlayerManager @Inject constructor(
         playlistId: String,
         playListName: String,
         index: Int,
-        reshuffle: Boolean
+        reshuffle: Boolean,
     ) {
         val isSamePlaylist = playerState.value.currentlyPlayingPlaylistId == playlistId
         if (!isSamePlaylist) {
@@ -332,6 +342,11 @@ class PlayerManager @Inject constructor(
         indexes.remove(index)
         indexes.shuffle()
         val finalOrder = listOf(index) + indexes
+        _playerState.update {
+            it.copy(
+                shuffleOrder = finalOrder
+            )
+        }
         return finalOrder.toIntArray()
     }
 

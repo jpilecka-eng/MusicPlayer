@@ -17,7 +17,8 @@ data class PlayerState(
     val queue: List<Track> = emptyList(),
     val currentIndex: Long = 0,
     val hasNext: Boolean = false,
-    val hasPrev: Boolean = false
+    val hasPrev: Boolean = false,
+    val shuffleOrder: List<Int> = emptyList()
 )
 
 data class Track(

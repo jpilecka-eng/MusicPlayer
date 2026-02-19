@@ -42,6 +42,7 @@ class PlayerService : MediaSessionService() {
                 if (order.isNotEmpty()) {
                     val seed = System.currentTimeMillis()
                     exoPlayer.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(order, seed)
+                    playerServiceStateHandler.onShuffleOrderUpdated()
                 }
             }
         }

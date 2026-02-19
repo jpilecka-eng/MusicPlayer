@@ -31,4 +31,14 @@
     <string name="string_playlist_description_read_more">Read more</string>
     <string name="string_playlist_description_read_less">Read less</string>
 
+    <string name="string_search_placeholder">Search Artist, Album, Single…</string>
+    <string name="string_search_header">Search</string>
+    <string name="string_search_notifications_description">Notifications</string>
+    <string name="string_search_chip_relevant">Relevant</string>
+    <string name="string_search_chip_popular">Popular</string>
+    <string name="string_search_chip_recent">Recent</string>
+
+    <string name="string_search_albums_header">Albums</string>
+    <string name="string_search_singles_header">Singles</string>
+
 </resources>

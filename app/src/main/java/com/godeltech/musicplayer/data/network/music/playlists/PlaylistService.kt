@@ -5,6 +5,7 @@ import com.godeltech.musicplayer.data.network.music.playlists.responses.Playlist
 import com.godeltech.musicplayer.data.network.music.playlists.responses.PlaylistsDataResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PlaylistService {
 
@@ -21,4 +22,10 @@ interface PlaylistService {
     suspend fun getPlaylists(
         @Path("id") id: String
     ): PlayListDataResponse
+
+    @GET("playlists/search")
+    suspend fun getSearchedPlaylists(
+        @Query("query") query: String,
+        @Query("sort_method") sortMethod: String,
+    ): PlaylistsDataResponse
 }

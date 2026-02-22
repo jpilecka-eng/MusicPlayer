@@ -194,7 +194,11 @@ fun PlayerScreenContent(
             TrackOptionsRow(
                 onShowQueue = {
                     onAction(PlayerUIAction.OnQueueClicked)
-                }
+                },
+                onFavouriteCLicked = {
+                    onAction(PlayerUIAction.OnFavouriteClicked)
+                },
+                isFavourite = state.data.isFavourite
             )
 
             MusicPlayerSlider(
@@ -255,7 +259,9 @@ fun PlayerScreenContent(
 @Composable
 fun TrackOptionsRow(
     modifier: Modifier = Modifier,
-    onShowQueue: () -> Unit
+    onShowQueue: () -> Unit,
+    onFavouriteCLicked: () -> Unit,
+    isFavourite: Boolean
 ) {
     Row(
         modifier = modifier
@@ -275,12 +281,25 @@ fun TrackOptionsRow(
                 alignment = Alignment.Start
             )
         ) {
+            val favouriteIcon = if (isFavourite) {
+                R.drawable.ic_heart_filled
+            } else {
+                R.drawable.ic_heart
+            }
+
+            val iconTint = if (isFavourite) {
+                MusicPlayerTheme.projectColors.colorPrimary
+            } else null
+
             RoundButton(
-                iconRes = R.drawable.ic_heart,
+                iconRes = favouriteIcon,
                 modifier = Modifier.size(MusicPlayerTheme.spacing.spacingXXXXL),
                 iconSize = MusicPlayerTheme.spacing.spacingXL,
                 description = R.string.string_player_ic_save_description,
-                onClick = {}
+                onClick = {
+                    onFavouriteCLicked()
+                },
+                tint = iconTint
             )
 
             RoundButton(

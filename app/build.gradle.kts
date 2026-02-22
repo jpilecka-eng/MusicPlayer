@@ -85,4 +85,8 @@ dependencies {
 
     //material
     implementation(libs.androidx.material3)
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 }

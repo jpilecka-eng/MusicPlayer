@@ -137,10 +137,10 @@ private fun AppContent(
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(
                     MusicPlayerTheme.projectColors.colorNeutralBlack
                 )
+                .padding(paddingValues)
         ) {
             NavDisplay(
                 modifier = Modifier.background(
@@ -155,7 +155,7 @@ private fun AppContent(
                                     navigator.navigate(Route.Player)
                                 },
                                 onNavigateToPlaylist = { id ->
-                                    navigator.navigate(Route.Playlist(id))
+                                    navigator.navigate(Route.Playlist(id, false))
                                 },
                                 isMiniPlayerVisible = miniPlayerVisible
                             )
@@ -167,12 +167,16 @@ private fun AppContent(
                                     navigator.navigate(Route.Player)
                                 },
                                 onNavigateToPlaylist = { id ->
-                                    navigator.navigate(Route.Playlist(id))
+                                    navigator.navigate(Route.Playlist(id, false))
                                 }
                             )
                         }
                         entry<Route.Library> {
-                            LibraryScreen()
+                            LibraryScreen(
+                                onNavigateToPlaylist = { id ->
+                                    navigator.navigate(Route.Playlist(id, true))
+                                }
+                            )
                         }
                         entry<Route.Player>(
                             metadata = NavDisplay.transitionSpec {
@@ -230,7 +234,8 @@ private fun AppContent(
                                 onNavigateBack = {
                                     navigator.goBack()
                                 },
-                                isMiniPlayerVisible = miniPlayerVisible
+                                isMiniPlayerVisible = miniPlayerVisible,
+                                isLocal = navEntry.isLocal
                             )
                         }
                     }

@@ -28,12 +28,14 @@ class PlayerServiceModule {
         }
     }
 
+    @OptIn(UnstableApi::class)
     @Provides
     @ServiceScoped
     fun provideMediaSession(
         service: Service,
         exoPlayer: ExoPlayer
     ): MediaSession {
-        return MediaSession.Builder(service, exoPlayer).build()
+        return MediaSession.Builder(service, exoPlayer)
+            .build()
     }
 }

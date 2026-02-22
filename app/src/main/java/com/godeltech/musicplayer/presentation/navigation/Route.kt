@@ -19,5 +19,7 @@ sealed interface Route : NavKey {
     data object Player : Route
 
     @Serializable
-    data class Playlist(val id: String) : Route
+    data class Playlist(
+        val id: String, val isLocal: Boolean
+    ) : Route
 }

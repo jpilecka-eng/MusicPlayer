@@ -21,6 +21,7 @@ data class PlaylistInfoModel(
     val id: String = "",
     val title: String = "",
     val imageUrl: String = "",
+    val imageRes: Int? = null,
     val description: String = "",
     val descriptionTruncated: String = "",
     val releaseDate: String = "",

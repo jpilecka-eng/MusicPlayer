@@ -19,8 +19,8 @@ private const val TAG = "PlayerService"
 
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
-class PlayerService : MediaSessionService() {
-
+class PlayerService(
+) : MediaSessionService() {
     @Inject
     lateinit var mediaSession: MediaSession
 
@@ -33,19 +33,26 @@ class PlayerService : MediaSessionService() {
     private var shuffleJob: Job? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main)
 
+
     override fun onCreate() {
         super.onCreate()
         playerServiceStateHandler.onServiceStarted()
 
         shuffleJob = serviceScope.launch {
-            playerServiceStateHandler.shuffleOrder.collect { order ->
+            playerServiceStateHandler.shuffleOrder.collect { shuffleUpdate ->
+                val reset = shuffleUpdate.reset
+                val order = shuffleUpdate.order
                 if (order.isNotEmpty()) {
-                    val seed = System.currentTimeMillis()
-                    exoPlayer.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(order, seed)
-                    playerServiceStateHandler.onShuffleOrderUpdated()
+                    exoPlayer.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(order, 1)
+                    if (reset == true) {
+                        val isShuffleEnabled = exoPlayer.shuffleModeEnabled
+                        exoPlayer.shuffleModeEnabled = !isShuffleEnabled
+                    }
                 }
             }
         }
+
+        // setMediaNotificationProvider(CustomMediaNotificationProvider(this))
     }
 
     override fun onDestroy() {
@@ -65,6 +72,7 @@ class PlayerService : MediaSessionService() {
     @OptIn(UnstableApi::class)
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.d(TAG, "Task removed")
+        shuffleJob?.cancel()
         playerServiceStateHandler.onServiceStopped()
         pauseAllPlayersAndStopSelf()
     }

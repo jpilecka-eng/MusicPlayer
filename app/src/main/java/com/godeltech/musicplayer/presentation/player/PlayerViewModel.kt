@@ -2,6 +2,8 @@ package com.godeltech.musicplayer.presentation.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.godeltech.musicplayer.R
+import com.godeltech.musicplayer.data.database.playlist.PlaylistLocalRepository
 import com.godeltech.musicplayer.player.PlayerAction
 import com.godeltech.musicplayer.player.PlayerManager
 import com.godeltech.musicplayer.presentation.common.extensions.sendEvent
@@ -21,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val playerControls: PlayerManager,
+    private val playlistRepository: PlaylistLocalRepository
 ) : ViewModel() {
 
     val playerState = playerControls.playerState
@@ -63,6 +66,22 @@ class PlayerViewModel @Inject constructor(
                         it.copy(
                             data = it.data.copy(
                                 playerDurationFormatted = calculateFromMsFormatted(durationMs)
+                            )
+                        )
+                    }
+                }
+        }
+
+        viewModelScope.launch {
+            playlistRepository.isTrackInPlaylist(
+                FAVOURITE_PLAYLIST_ID,
+                playerState.value.currentlyPlayingTrack.id
+            )
+                .collect { isFavourite ->
+                    _state.update {
+                        it.copy(
+                            data = it.data.copy(
+                                isFavourite = isFavourite
                             )
                         )
                     }
@@ -163,6 +182,46 @@ class PlayerViewModel @Inject constructor(
             is PlayerUIAction.OnBackClicked -> {
                 _event.sendEvent(viewModelScope) {
                     PlayerUIEvent.OnNavigateBack
+                }
+            }
+
+            is PlayerUIAction.OnFavouriteClicked -> {
+                val isFavourite = state.value.data.isFavourite
+                if (!isFavourite) {
+                    viewModelScope.launch {
+                        playlistRepository.addPlaylist(
+                            FAVOURITE_PLAYLIST_ID,
+                            FAVOURITE_PLAYLIST_NAME,
+                            FAVOURITE_PLAYLIST_AUTHOR,
+                            R.drawable.img_favourites
+                        )
+
+                        playlistRepository.addTrackToPlaylist(
+                            FAVOURITE_PLAYLIST_ID,
+                            playerState.value.currentlyPlayingTrack
+                        )
+                        _state.update {
+                            it.copy(
+                                data = it.data.copy(
+                                    isFavourite = true
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    viewModelScope.launch {
+                        playlistRepository.removeTrackFromPlaylist(
+                            FAVOURITE_PLAYLIST_ID,
+                            playerState.value.currentlyPlayingTrack.id
+                        )
+                        _state.update {
+                            it.copy(
+                                data = it.data.copy(
+                                    isFavourite = false
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }

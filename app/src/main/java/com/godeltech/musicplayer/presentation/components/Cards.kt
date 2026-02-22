@@ -33,7 +33,8 @@ import com.godeltech.musicplayer.presentation.theme.MusicPlayerTheme
 @Composable
 fun MediaCard(
     modifier: Modifier = Modifier,
-    imageUrl: String,
+    imageUrl: String = "",
+    imagePlaceholder: Int? = null,
     trackName: String,
     artistName: String,
     imageSize: Dp,
@@ -45,6 +46,7 @@ fun MediaCard(
                 onClick()
             }
     ) {
+        val placeholder = imagePlaceholder ?: R.drawable.ic_notes
         AsyncImage(
             modifier = Modifier
                 .size(imageSize)
@@ -55,14 +57,14 @@ fun MediaCard(
                 ),
             contentScale = ContentScale.Crop,
             model = imageUrl.takeIf {
-                !it.isNullOrEmpty()
-            } ?: R.drawable.ic_notes,
+                it.isNotEmpty()
+            } ?: placeholder,
             contentDescription = null,
             placeholder = painterResource(
-                R.drawable.ic_notes
+                placeholder
             ),
             error = painterResource(
-                R.drawable.ic_notes
+                placeholder
             )
         )
         Text(
@@ -97,7 +99,7 @@ fun AlbumCard(
     modifier: Modifier = Modifier,
     playlistName: String,
     releaseDate: String,
-    imageUrl: String,
+    imageUrl: Any?,
     description: String,
     isAlbum: Boolean,
     onPlayClicked: () -> Unit,
@@ -122,9 +124,7 @@ fun AlbumCard(
                     )
                 ),
             contentScale = ContentScale.Crop,
-            model = imageUrl.takeIf {
-                !it.isNullOrEmpty()
-            } ?: R.drawable.ic_notes,
+            model = imageUrl ?: R.drawable.ic_notes,
             contentDescription = null,
             placeholder = painterResource(
                 R.drawable.ic_notes

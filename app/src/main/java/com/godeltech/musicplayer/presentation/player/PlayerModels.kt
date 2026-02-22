@@ -17,6 +17,7 @@ data class PlayerModel(
     val playerDurationFormatted: String = "",
     val isSeeking: Boolean = false,
     val showQueue: Boolean = false,
+    val isFavourite: Boolean = false
 )
 
 sealed class PlayerUIEvent {
@@ -35,4 +36,9 @@ sealed class PlayerUIAction {
     data object OnBottomSheetDismissed : PlayerUIAction()
     data class OnQueueItemClicked(val index: Int) : PlayerUIAction()
     data object OnBackClicked : PlayerUIAction()
+    data object OnFavouriteClicked : PlayerUIAction()
 }
+
+const val FAVOURITE_PLAYLIST_ID = "player_favourites"
+const val FAVOURITE_PLAYLIST_NAME = "Liked songs"
+const val FAVOURITE_PLAYLIST_AUTHOR = "Auto playlist"

@@ -82,7 +82,7 @@ class PlayerManager @Inject constructor(
                     ),
                     positionMs = 0L,
                     queue = queue,
-                    currentIndex = controller?.currentPosition ?: 0
+                    currentIndex = controller?.currentMediaItemIndex?.toLong() ?: 0L
                 )
             }
             updateSkipPositions()
@@ -154,16 +154,6 @@ class PlayerManager @Inject constructor(
                 if (!isRunning) {
                     controller?.removeListener(listener)
                     clear()
-                }
-            }
-        }
-        scope.launch {
-            playerServiceStateHandler.shuffleOrderUpdated.collect {
-                val queue = buildQueue()
-                _playerState.update {
-                    it.copy(
-                        queue = queue
-                    )
                 }
             }
         }
@@ -248,11 +238,10 @@ class PlayerManager @Inject constructor(
 
     private fun toggleShuffle() {
         val order = getCustomShuffleOrder(playerState.value.currentIndex.toInt())
-        playerServiceStateHandler.onShuffleOrderChanged(order)
-
-        controller?.let { player ->
-            player.shuffleModeEnabled = !player.shuffleModeEnabled
-        }
+        playerServiceStateHandler.onShuffleOrderChanged(
+            order,
+            true
+        )
     }
 
     private fun playPause() {
@@ -286,7 +275,8 @@ class PlayerManager @Inject constructor(
             _playerState.update {
                 it.copy(
                     currentlyPlayingPlaylistId = playlistId,
-                    currentlyPlayingPlaylistName = playListName
+                    currentlyPlayingPlaylistName = playListName,
+                    currentIndex = index.toLong()
                 )
             }
             setItems(items, index)
@@ -295,7 +285,7 @@ class PlayerManager @Inject constructor(
         }
         if (controller?.shuffleModeEnabled == true && reshuffle) {
             val order = getCustomShuffleOrder(index)
-            playerServiceStateHandler.onShuffleOrderChanged(order)
+            playerServiceStateHandler.onShuffleOrderChanged(order, false)
         }
         playPause()
     }

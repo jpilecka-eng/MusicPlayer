@@ -1,6 +1,5 @@
 package com.godeltech.musicplayer.presentation.components
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,10 +23,6 @@ fun MusicPlayerTopBar(
     navigationIcon: @Composable () -> Unit
 ) {
     TopAppBar(
-        windowInsets = WindowInsets(
-            MusicPlayerTheme.padding.paddingS,
-            MusicPlayerTheme.padding.paddingS
-        ),
         modifier = modifier,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MusicPlayerTheme.projectColors.colorNeutralBlack,

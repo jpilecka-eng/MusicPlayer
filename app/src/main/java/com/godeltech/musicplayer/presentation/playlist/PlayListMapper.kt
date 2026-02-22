@@ -1,5 +1,7 @@
 package com.godeltech.musicplayer.presentation.playlist
 
+import com.godeltech.musicplayer.data.database.playlist.entities.PlaylistEntity
+import com.godeltech.musicplayer.data.database.playlist.entities.TrackEntity
 import com.godeltech.musicplayer.data.network.music.playlists.responses.PlayListDataResponse
 import com.godeltech.musicplayer.data.network.music.playlists.responses.PlaylistTracksDataResponse
 import com.godeltech.musicplayer.player.Track
@@ -39,6 +41,31 @@ class PlayListMapper @Inject constructor(
         return PlaylistModel(
             tracks = tracks,
             playlistInfo = playlistInfo
+        )
+    }
+
+    fun mapLocalPlaylistListData(
+        tracks: List<TrackEntity>,
+        playlistInfo: PlaylistEntity?
+    ): PlaylistModel {
+        val tracks = tracks.map { item ->
+            Track(
+                id = item.trackId,
+                artistName = item.title ?: "",
+                title = item.title ?: "",
+                imageUrl = item.imageUrl ?: ""
+
+            )
+        }
+
+        val playlistInfo = PlaylistInfoModel(
+            id = playlistInfo?.id ?: "",
+            title = playlistInfo?.name ?: "",
+            imageRes = playlistInfo?.coverImageRes
+        )
+        return PlaylistModel(
+            tracks = tracks,
+            playlistInfo
         )
     }
 

@@ -41,4 +41,11 @@
     <string name="string_search_albums_header">Albums</string>
     <string name="string_search_singles_header">Singles</string>
 
+    <string name="string_library_liked_songs_header">Liked songs</string>
+    <string name="string_library_auto_playlist">Auto playlist</string>
+    <string name="string_library_header">Library</string>
+    <string name="string_library_search_description">Search</string>
+    <string name="string_library_add_description">Add new playlist</string>
+    <string name="string_library_playlists_heading">Playlists</string>
+
 </resources>

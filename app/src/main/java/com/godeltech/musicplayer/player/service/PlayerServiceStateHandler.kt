@@ -1,8 +1,6 @@
 package com.godeltech.musicplayer.player.service
 
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -14,11 +12,8 @@ class PlayerServiceStateHandler @Inject constructor(
     private val _isServiceRunning = MutableStateFlow(false)
     val serviceIsRunning = _isServiceRunning.asStateFlow()
 
-    private val _shuffleOrder = MutableStateFlow(intArrayOf())
+    private val _shuffleOrder = MutableStateFlow(ShuffleUpdate())
     val shuffleOrder = _shuffleOrder.asStateFlow()
-
-    private val _shuffleOrderUpdated = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val shuffleOrderUpdated = _shuffleOrderUpdated.asSharedFlow()
 
     fun onServiceStopped() {
         _isServiceRunning.update {
@@ -32,13 +27,17 @@ class PlayerServiceStateHandler @Inject constructor(
         }
     }
 
-    fun onShuffleOrderChanged(shuffleOrder: IntArray) {
+    fun onShuffleOrderChanged(shuffleOrder: IntArray, reset: Boolean) {
         _shuffleOrder.update {
-            shuffleOrder
+            ShuffleUpdate(
+                shuffleOrder,
+                reset
+            )
         }
     }
-
-    fun onShuffleOrderUpdated() {
-        _shuffleOrderUpdated.tryEmit(Unit)
-    }
 }
+
+data class ShuffleUpdate(
+    val order: IntArray = intArrayOf(),
+    val reset: Boolean? = null
+)

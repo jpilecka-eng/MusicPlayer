@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SearchScreen(
+    modifier: Modifier = Modifier,
     isMiniPlayerVisible: Boolean,
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToPlayer: () -> Unit,
@@ -64,6 +65,7 @@ fun SearchScreen(
     }
 
     SearchScreenContent(
+        modifier = modifier,
         state = state,
         onAction = viewModel::onAction,
         playerState = playerState,

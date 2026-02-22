@@ -35,11 +35,15 @@ fun RoundButton(
     isLoading: Boolean = false,
     progressIndicatorSize: Dp = 10.dp,
     backgroundColor: Color = MusicPlayerTheme.projectColors.colorNeutralWhite8,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    tint: Color? = null
 ) {
-    val tint = if (enabled) {
+    val defaultTint = if (enabled) {
         MusicPlayerTheme.projectColors.colorNeutralWhite
     } else MusicPlayerTheme.projectColors.colorNeutralWhite.copy(0.3f)
+
+    val iconTint = tint ?: defaultTint
+
     Box(
         modifier = modifier
             .clip(
@@ -62,7 +66,7 @@ fun RoundButton(
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(iconRes),
                 contentDescription = stringResource(description),
-                tint = tint
+                tint = iconTint
             )
         }
     }
@@ -109,7 +113,7 @@ private fun RoundButtonPreview() {
         iconSize = 18.dp,
         description = R.string.string_player_ic_play_description,
         onClick = {},
-        isLoading = true,
+        isLoading = false,
         progressIndicatorSize = 18.dp
     )
 }

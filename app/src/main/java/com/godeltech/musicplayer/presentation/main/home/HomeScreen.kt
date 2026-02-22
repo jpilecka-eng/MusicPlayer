@@ -32,6 +32,7 @@ import com.godeltech.musicplayer.presentation.theme.MusicPlayerTheme
 
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     onNavigateToPlayer: () -> Unit,
     onNavigateToPlaylist: (id: String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -54,7 +55,8 @@ fun HomeScreen(
     HomeScreenContent(
         state = state,
         onAction = viewModel::onAction,
-        isMiniPlayerVisible = isMiniPlayerVisible
+        isMiniPlayerVisible = isMiniPlayerVisible,
+        modifier = modifier
     )
 }
 
@@ -182,7 +184,7 @@ fun HomeScreenContent(
 
                 val bottomPadding = if (isMiniPlayerVisible) {
                     120.dp
-                } else 0.dp
+                } else MusicPlayerTheme.padding.paddingXXXXXL
 
                 //recommended playlists
                 Text(

@@ -2,6 +2,7 @@ package com.godeltech.musicplayer.presentation.playlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.godeltech.musicplayer.data.database.playlist.PlaylistLocalRepository
 import com.godeltech.musicplayer.presentation.common.threading.DispatcherProvider
 import com.godeltech.musicplayer.data.network.music.playlists.PlaylistRepository
 import com.godeltech.musicplayer.player.PlayerAction
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -34,15 +36,17 @@ import kotlinx.coroutines.launch
 )
 class PlayListViewModel @AssistedInject constructor(
     private val playlistRepository: PlaylistRepository,
+    private val playlistLocalRepository: PlaylistLocalRepository,
     private val dispatcherProvider: DispatcherProvider,
     private val playListMapper: PlayListMapper,
     @Assisted private val id: String,
+    @Assisted private val isLocal: Boolean,
     private val playerControls: PlayerManager
 ) : ViewModel() {
 
     @AssistedFactory
     interface Factory {
-        fun create(id: String): PlayListViewModel
+        fun create(id: String, isLocal: Boolean): PlayListViewModel
     }
 
     private val _event = Channel<PlaylistEvent>()
@@ -55,7 +59,7 @@ class PlayListViewModel @AssistedInject constructor(
         }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(10000L),
+            SharingStarted.WhileSubscribed(5000L),
             PlaylistState.Idle
         )
 
@@ -65,7 +69,11 @@ class PlayListViewModel @AssistedInject constructor(
     init {
         refreshTrigger
             .flatMapLatest {
-                loadData(id)
+                if (isLocal) {
+                    loadLocalData(id)
+                } else {
+                    loadRemoteData(id)
+                }
             }.launchIn(viewModelScope)
     }
 
@@ -132,7 +140,7 @@ class PlayListViewModel @AssistedInject constructor(
         }
     }
 
-    private fun loadData(id: String): Flow<PlaylistModel> {
+    private fun loadRemoteData(id: String): Flow<PlaylistModel> {
         return playlistRepository.getPlaylistTracks(id)
             .zip(playlistRepository.getPlaylist(id)) { tracks, playlist ->
                 Pair(tracks, playlist)
@@ -149,6 +157,37 @@ class PlayListViewModel @AssistedInject constructor(
             .map { response ->
                 playListMapper.mapPlayListData(
                     response.first, response.second
+                )
+            }
+            .flowOn(dispatcherProvider.default())
+            .onEach { data ->
+                _state.update {
+                    it.copy(
+                        data = data,
+                        isLoading = false,
+                        isError = false
+                    )
+                }
+            }
+            .catch {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isError = true
+                    )
+                }
+            }
+    }
+
+    private fun loadLocalData(playListId: String): Flow<PlaylistModel> {
+        return playlistLocalRepository.getPlaylistTracks(playListId)
+            .combine(playlistLocalRepository.getPlaylist(playListId)) { tracks, playlistInfo ->
+                Pair(tracks, playlistInfo)
+            }
+            .map { response ->
+                playListMapper.mapLocalPlaylistListData(
+                    response.first,
+                    response.second
                 )
             }
             .flowOn(dispatcherProvider.default())

@@ -41,9 +41,11 @@ import com.godeltech.musicplayer.presentation.theme.MusicPlayerTheme
 
 @Composable
 fun PlayListScreen(
+    modifier: Modifier = Modifier,
     id: String,
+    isLocal: Boolean,
     viewModel: PlayListViewModel = hiltViewModel<PlayListViewModel, PlayListViewModel.Factory> { factory ->
-        factory.create(id = id)
+        factory.create(id = id, isLocal = isLocal)
     },
     onNavigateToPlayer: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -65,12 +67,12 @@ fun PlayListScreen(
     }
 
     PlayListScreenContent(
+        modifier = modifier,
         state = state,
         onAction = viewModel::onAction,
         playerState = playerState,
         isMiniPlayerVisible = isMiniPlayerVisible
     )
-
 }
 
 @Composable
@@ -100,6 +102,9 @@ fun PlayListScreenContent(
                 onAction(PlaylistAction.OnReloadClicked)
             }
         } else {
+            val imageUrl = state.data.playlistInfo.imageUrl
+            val imageRes = state.data.playlistInfo.imageRes
+            val model: Any? = imageUrl.ifBlank { imageRes }
             AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()
@@ -110,9 +115,7 @@ fun PlayListScreenContent(
                     )
                     .blur(MusicPlayerTheme.radius.radiusXS),
                 contentScale = ContentScale.Crop,
-                model = state.data.playlistInfo.imageUrl.takeIf {
-                    it.isNotEmpty()
-                } ?: R.drawable.ic_notes,
+                model = model ?: R.drawable.ic_notes,
                 contentDescription = null,
                 placeholder = painterResource(
                     R.drawable.ic_notes
@@ -173,6 +176,10 @@ fun PlayListScreenContent(
                     //todo - move
                     val currentPlayListIsPlaying =
                         (playerState.currentlyPlayingPlaylistId == playListInfo.id && playerState.isPlaying)
+                    val imageUrl = state.data.playlistInfo.imageUrl
+                    val imageRes = state.data.playlistInfo.imageRes
+
+                    val model: Any? = imageUrl.ifBlank { imageRes }
                     item {
                         AlbumCard(
                             playlistName = playListInfo.title,
@@ -180,7 +187,7 @@ fun PlayListScreenContent(
                             description = if (playListInfo.descriptionExpanded) {
                                 playListInfo.description
                             } else playListInfo.descriptionTruncated,
-                            imageUrl = playListInfo.imageUrl,
+                            imageUrl = model,
                             isAlbum = playListInfo.isAlbum,
                             modifier = Modifier.padding(
                                 top = MusicPlayerTheme.padding.paddingL
